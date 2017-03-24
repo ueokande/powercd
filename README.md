@@ -1,0 +1,2 @@
+# powercd
+power cd
