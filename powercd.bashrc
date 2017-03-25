@@ -50,3 +50,20 @@ powercd() {
   ..*) _powercd_dotdot "$1" ;;
   esac
 }
+
+_powercd() {
+  local cur entries
+
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  entries=$(awk -F=  '{print "@" $1}' "$POWERCD_AT_CACHE")
+  if [[ "$COMP_CWORD" = 1 && "$cur" =~ ^@ ]]; then
+    COMPREPLY=( $(compgen -W "$entries" -- "${cur}") )
+    return 0
+  elif [[ "$COMP_CWORD" = 1 && "$cur" =~ ^\.\. ]]; then
+    COMPREPLY=( $(compgen -W "$entries" -- "${cur}") )
+    return 0
+  fi
+  return 1
+}
+
+complete -F _powercd -o bashdefault -o default powercd
