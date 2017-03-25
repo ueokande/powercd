@@ -3,6 +3,8 @@
 POWERCD_AT_CACHE="$HOME/.powercd_at_profile"
 
 powercd_at_update() {
+  local dir
+
   while test $# != 0; do
     if ! [ -d "$1" ]; then
       echo 2>&1 "powercd: '$1': No such file or directory"
@@ -19,6 +21,7 @@ powercd_at_update() {
 
 _powercd_at() {
   local dir target
+
   target="${1/@/}"
   if [ -z "$target" ]; then
     cat "$POWERCD_AT_CACHE"
