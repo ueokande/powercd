@@ -66,4 +66,4 @@ _powercd() {
   return 1
 }
 
-complete -F _powercd -o bashdefault -o default powercd
+complete -F _powercd -o dirname powercd
