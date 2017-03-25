@@ -66,4 +66,4 @@ _powercd() {
   return 1
 }
 
-complete -F _powercd -o dirname powercd
+complete -F _powercd -o dirnames powercd
