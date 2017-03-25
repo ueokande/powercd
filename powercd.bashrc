@@ -7,7 +7,7 @@ powercd_at_update() {
 
   while test $# != 0; do
     if ! [ -d "$1" ]; then
-      echo 2>&1 "$0: '$1': No such file or directory"
+      echo 2>&1 "powercd: '$1': No such file or directory"
       shift
       continue
     fi
@@ -29,7 +29,7 @@ _powercd_at() {
 
   dir=$(awk -F= '$1=="'"$target"'" { print $2 }' "$POWERCD_AT_CACHE" | tail -1)
   if [ -z "$dir" ]; then
-    echo 2>&1 "$0: $1: No such file or directory"
+    echo 2>&1 "powercd: $1: No such file or directory"
     return 1
   else
     cd "$dir" || return
@@ -38,7 +38,7 @@ _powercd_at() {
 
 _powercd_dotdot() {
   if ! [ "${1/../}" -gt 0 ] &>/dev/null; then
-    echo >&2 "positive number required"
+    echo >&2 "powercd: positive number required"
     return 1
   fi
   cd "$(printf "%0.s../" $(seq "${1/../}"))" || return
@@ -48,6 +48,7 @@ powercd() {
   case "$1" in
   @*) _powercd_at "$1" ;;
   ..*) _powercd_dotdot "$1" ;;
+  *) cd "$@" || return ;;
   esac
 }
 
