@@ -3,8 +3,6 @@
 POWERCD_AT_CACHE="$HOME/.powercd_at_profile"
 
 powercd_at_update() {
-  touch "$HOME"/.hoprc
-
   while test $# != 0; do
     if ! [ -d "$1" ]; then
       echo 2>&1 "powercd: '$1': No such file or directory"
@@ -25,6 +23,11 @@ _powercd_at() {
   if [ -z "$target" ]; then
     cat "$POWERCD_AT_CACHE"
     return 0
+  fi
+
+  if [ ! -f "$POWERCD_AT_CACHE" ]; then
+    echo 2>&1 "powercd: $1: No such file or directory"
+    return 1
   fi
 
   dir=$(awk -F= '$1=="'"$target"'" { print $2 }' "$POWERCD_AT_CACHE" | tail -1)
@@ -54,6 +57,10 @@ powercd() {
 
 _powercd() {
   local cur entries
+
+  if [ ! -f "$POWERCD_AT_CACHE" ]; then
+    return 1
+  fi
 
   cur="${COMP_WORDS[COMP_CWORD]}"
   entries=$(awk -F=  '{print "@" $1}' "$POWERCD_AT_CACHE")
