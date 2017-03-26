@@ -43,11 +43,11 @@ _powercd_at() {
 }
 
 _powercd_dotdot() {
-  if ! [ "${1/../}" -gt 0 ] &>/dev/null; then
-    echo >&2 "powercd: positive number required"
-    return 1
+  if [ "${1/../}" -gt 0 ] &>/dev/null; then
+    cd "$(printf "%0.s../" $(seq "${1/../}"))" || return
+  else
+    cd "$@" || return
   fi
-  cd "$(printf "%0.s../" $(seq "${1/../}"))" || return
 }
 
 powercd() {
