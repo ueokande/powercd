@@ -19,27 +19,31 @@ powercd_at_update() {
   done
 }
 
-_powercd_at() {
-  local dir target
-
-  target="${1/@/}"
-  if [ -z "$target" ]; then
-    cat "$POWERCD_AT_CACHE"
-    return 0
-  fi
+_powercd_expand_at() {
+  local target rem dir
 
   if [ ! -f "$POWERCD_AT_CACHE" ]; then
-    echo 2>&1 "powercd: $1: No such file or directory"
     return 1
   fi
 
+  target=$(echo "$1" | sed 's/@\([^/]\+\)\(.*\)/\1/g')
+  rem=$(echo "$1" | sed 's/@\([^/]\+\)\(.*\)/\2/g')
   dir=$(awk -F= '$1=="'"$target"'" { print $2 }' "$POWERCD_AT_CACHE" | tail -1)
   if [ -z "$dir" ]; then
+    return 1
+  fi
+
+  echo "$dir$rem"
+}
+
+_powercd_at() {
+  local expanded
+
+  if ! expanded=$(_powercd_expand_at "$1"); then
     echo 2>&1 "powercd: $1: No such file or directory"
     return 1
-  else
-    cd "$dir" || return
   fi
+  cd "$expanded" || return
 }
 
 _powercd_dotdot() {
