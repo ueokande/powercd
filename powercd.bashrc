@@ -1,48 +1,51 @@
 #!/bin/bash
 
-POWERCD_AT_CACHE="$HOME/.powercd_at_profile"
-
-powercd_at_update() {
-  local dir
-
-  while test $# != 0; do
-    if ! [ -d "$1" ]; then
-      echo 2>&1 "powercd: '$1': No such file or directory"
-      shift
-      continue
-    fi
-
-    for dir in $1/*; do
-      echo "$(basename "$dir")=$dir" >>"$POWERCD_AT_CACHE"
+_power_at_list() {
+  (
+    export IFS=':'
+    for dir in $POWERPATH; do
+      find "$dir" -mindepth 1 -maxdepth 1 -type d
     done
-    shift
+  )
+}
+
+_power_at_atnames() {
+  (
+    export IFS=':'
+    for dir in $POWERPATH; do
+      find "$dir" -mindepth 1 -maxdepth 1 -printf '@%f\n'
+    done
+  )
+}
+
+_power_at_get() {
+  local basename
+  _power_at_list | while read line; do
+    basename=$(basename "$line")
+    if [[ "$basename" = "$1" ]]; then
+      echo $line
+      exit
+    fi
   done
 }
 
-_powercd_expand_at() {
+_power_expand_at() {
   local target rem dir
 
-  if [ ! -f "$POWERCD_AT_CACHE" ]; then
-    return 1
-  fi
-
-  target=$(echo "$1" | sed 's/@\([^/]\+\)\(.*\)/\1/g')
-  rem=$(echo "$1" | sed 's/@\([^/]\+\)\(.*\)/\2/g')
-  dir=$(awk -F= '$1=="'"$target"'" { print $2 }' "$POWERCD_AT_CACHE" | tail -1)
+  target=$(echo "$1" | sed 's/^@\([^/]\+\)\(.*\)/\1/g')
+  rem=$(echo "$1" | sed 's/^@\([^/]\+\)\(.*\)/\2/g')
+  dir=$(_power_at_get "$target")
   if [ -z "$dir" ]; then
-    return 1
+    echo "$1"
+  else
+    echo "$dir$rem"
   fi
-
-  echo "$dir$rem"
 }
 
 _powercd_at() {
   local expanded
 
-  if ! expanded=$(_powercd_expand_at "$1"); then
-    echo 2>&1 "powercd: $1: No such file or directory"
-    return 1
-  fi
+  expanded=$(_power_expand_at "$1")
   cd "$expanded" || return
 }
 
@@ -65,12 +68,8 @@ powercd() {
 _powercd() {
   local cur entries
 
-  if [ ! -f "$POWERCD_AT_CACHE" ]; then
-    return 1
-  fi
-
   cur="${COMP_WORDS[COMP_CWORD]}"
-  entries=$(awk -F=  '{print "@" $1}' "$POWERCD_AT_CACHE")
+  entries=$(_power_at_atnames)
   if [[ "$COMP_CWORD" = 1 && "$cur" =~ ^@ ]]; then
     COMPREPLY=( $(compgen -W "$entries" -- "${cur}") )
     return 0
